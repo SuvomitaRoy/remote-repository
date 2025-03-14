@@ -15,7 +15,6 @@ def main(args):
     transforms.ToTensor(),
     ]) 
 
-    # choose the training and test datasets
     train_data = datasets.MNIST(datasets_path, train = True,
                                 download = True, transform = transform)
     test_data = datasets.MNIST(datasets_path, train=False,
@@ -25,15 +24,15 @@ def main(args):
     test_size = len(test_data)
 
     # build the data loaders
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size = args.batch_size)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size = args.batch_size, shuffle = False)
+    train_loader = torch.utils.data.DataLoader(train_data, args.batch_size)
+    test_loader = torch.utils.data.DataLoader(test_data, args.batch_size, shuffle = False)
 
     # specify the image classes
     classes = [f"{i}" for i in range(10)]
 
-    model = VAE_FC(args.layers,latent_dim=10).to(device)
-    criterion = build_loss_vae(lambda_reconstruct=0.5, lambda_kl=0.5)
-    optimizer = optim.Adam(model.parameters(), lr = .01)
+    model = VAE_FC(args.layers,args.latent_dim).to(device)
+    criterion = build_loss_vae(args.lambda_reconstruct, args.lambda_kl)
+    optimizer = optim.Adam(model.parameters(), args.lr)
     nepochs = 10
     train_model_vae(train_loader,model,criterion, optimizer,nepochs)
 
@@ -58,4 +57,4 @@ if __name__ == '__main__':
                       help="The dataset path to use for training.")
     args = parser.parse_args()
     print('Model Loading...')
-
+    main(args)
