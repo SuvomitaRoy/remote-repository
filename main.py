@@ -2,26 +2,36 @@ import torch
 import argparse
 from torch import optim
 from torch.utils.data import DataLoader
-from torchvision.datasets import MNIST
+import torchvision.transforms as transforms
+from torchvision import datasets
 from torchvision.transforms import ToTensor
 from vae import VAE_FC, build_loss_vae, train_model_vae
 
-
+datasets_path = "~/datasets"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main(args):
-    train_data = MNIST(root="./data", train=True, transform=ToTensor(), download=True)
-    test_data = MNIST(root="./data", train=False, transform=ToTensor(), download=True)
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.batch_size, shuffle=False)
+    transform = transforms.Compose([
+    transforms.ToTensor(),
+    ]) 
+
+    # choose the training and test datasets
+    train_data = datasets.MNIST(datasets_path, train = True,
+                                download = True, transform = transform)
+    test_data = datasets.MNIST(datasets_path, train=False,
+                                download = True, transform = transform)
 
     train_size = len(train_data)
     test_size = len(test_data)
 
+    # build the data loaders
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size = args.batch_size)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size = args.batch_size, shuffle = False)
+
+    # specify the image classes
     classes = [f"{i}" for i in range(10)]
 
-    layers = [28**2, 500,200,50]
-    model = VAE_FC(layers,latent_dim=10).to(device)
+    model = VAE_FC(args.layers,latent_dim=10).to(device)
     criterion = build_loss_vae(lambda_reconstruct=0.5, lambda_kl=0.5)
     optimizer = optim.Adam(model.parameters(), lr = .01)
     nepochs = 10
