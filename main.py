@@ -34,6 +34,9 @@ def main(args):
     criterion = build_loss_vae(args.lambda_reconstruct, args.lambda_kl)
     optimizer = optim.Adam(model.parameters(), args.lr)
     nepochs = 10
+    torch.save({"vae_fc": model.state_dict()}, "VAE_FC_MNIST.pkl")
+    dct_load = torch.load("VAE_FC_MNIST.pkl", weights_only = True)
+    model.load_state_dict(dct_load["vae_fc"])
     train_model_vae(train_loader,model,criterion, optimizer,nepochs)
 
 
@@ -51,7 +54,7 @@ if __name__ == '__main__':
                       help="The learning rate to use for training.")
     parser.add_argument("--nepochs", type=int, default=10,
                       help="The number of epochs to use for training.")
-    parser.add_argument("--layers", type=list, default=[28**2, 500,200,50],
+    parser.add_argument("--layers", type=list, default=[784,500,200,50],
                       help="The list of layers to use for training.")
     parser.add_argument("--datasets_path", type=str, default="~/datasets",
                       help="The dataset path to use for training.")
